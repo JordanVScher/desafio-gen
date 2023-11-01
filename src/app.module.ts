@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { ProdutoModule } from './produto/produto.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { CategoriaModule } from './categoria/categoria.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { MongooseModule } from '@nestjs/mongoose';
         uri: config.get<string>('MONGO_URI'),
       }),
     }),
+    CategoriaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
