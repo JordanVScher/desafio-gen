@@ -1,22 +1,35 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AppController } from './app.controller';
+import * as request from 'supertest';
+import { Test } from '@nestjs/testing';
+import { AppModule } from './app.module';
 import { AppService } from './app.service';
+import { INestApplication } from '@nestjs/common';
 
-describe('AppController', () => {
-  let appController: AppController;
+describe('Root', () => {
+  let app: INestApplication;
+  const appService = {
+    getHealth: () => ({ status: 'OK', message: 'Service is up and running' }),
+  };
 
-  beforeEach(async () => {
-    const app: TestingModule = await Test.createTestingModule({
-      controllers: [AppController],
-      providers: [AppService],
-    }).compile();
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [AppModule],
+    })
+      .overrideProvider(AppService)
+      .useValue(appService)
+      .compile();
 
-    appController = app.get<AppController>(AppController);
+    app = moduleRef.createNestApplication();
+    await app.init();
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(appController.getHello()).toBe('Hello World!');
-    });
+  it(`GET /health`, () => {
+    return request(app.getHttpServer())
+      .get('/health')
+      .expect(200)
+      .expect(appService.getHealth());
+  });
+
+  afterAll(async () => {
+    await app.close();
   });
 });
