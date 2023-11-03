@@ -1,20 +1,32 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { CategoriaController } from './categoria.controller';
-import { CategoriaService } from './categoria.service';
+import * as request from 'supertest';
+import { Test } from '@nestjs/testing';
+import { CategoriaModule } from './categoria.module';
+import { INestApplication } from '@nestjs/common';
 
-describe('CategoriaController', () => {
-  let controller: CategoriaController;
+describe('Root', () => {
+  let app: INestApplication;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      controllers: [CategoriaController],
-      providers: [CategoriaService],
+  beforeAll(async () => {
+    const moduleRef = await Test.createTestingModule({
+      imports: [CategoriaModule],
     }).compile();
 
-    controller = module.get<CategoriaController>(CategoriaController);
+    app = moduleRef.createNestApplication();
+    await app.init();
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  describe('POST /categoria', () => {
+    it(`create new categoria`, () => {
+      return request(app.getHttpServer())
+        .post('/categoria')
+        .send({ nome: 'Informatica' })
+        .expect(201)
+        .then((res) => {
+          expect(res.text).toBe('This action adds a new categoria');
+        });
+    });
+  });
+  afterAll(async () => {
+    await app.close();
   });
 });
