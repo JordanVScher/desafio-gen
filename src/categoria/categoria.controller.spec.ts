@@ -80,6 +80,36 @@ describe('Root', () => {
           );
         });
     });
+
+    it(`Update categoria`, async () => {
+      const newNomeCategoria = 'Info';
+      await request(app.getHttpServer())
+        .patch(`/categoria/${newCategoria._id}`)
+        .send({ nome: newNomeCategoria })
+        .expect(200)
+        .then((res) => {
+          expect(res.body._id).toBe(newCategoria._id);
+          expect(res.body.nome).toBe(newNomeCategoria);
+        });
+
+      return request(app.getHttpServer())
+        .get(`/categoria/${newCategoria._id}`)
+        .expect(200)
+        .then((res) => {
+          expect(res.body._id).toBe(newCategoria._id);
+          expect(res.body.nome).toBe(newNomeCategoria);
+        });
+    });
+
+    it(`Error: no 'nome' for updated categoria`, () => {
+      return request(app.getHttpServer())
+        .patch(`/categoria/${newCategoria._id}`)
+        .send({})
+        .expect(400)
+        .then((res) => {
+          expect(res.body.message[0]).toBe('nome must be a string');
+        });
+    });
   });
   afterAll(async () => {
     await app.close();
