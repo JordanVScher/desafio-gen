@@ -1,12 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCategoriaDto } from './dto/create-categoria.dto';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
+import { Categoria } from './categoria.schema';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class CategoriaService {
+  constructor(
+    @InjectModel(Categoria.name) private categoriaModel: Model<Categoria>,
+  ) {}
+
   // eslint-disable-next-line
-  create(createCategoriaDto: CreateCategoriaDto) {
-    return 'This action adds a new categoria';
+  async create(createCategoriaDto: CreateCategoriaDto): Promise<Categoria> {
+    const createdCat = new this.categoriaModel(createCategoriaDto);
+    return createdCat.save();
   }
 
   findAll() {
