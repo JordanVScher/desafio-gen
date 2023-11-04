@@ -10,6 +10,7 @@ import { Categoria, CategoriaSchema } from './categoria.schema';
 import { CategoriaController } from './categoria.controller';
 import { CategoriaService } from './categoria.service';
 import {
+  CategoriaAutomotivoStub,
   CategoriaInformaticaStub,
   newNomeCategoria,
 } from '../../test/test-utils/stubs/categoriaStub';
@@ -53,6 +54,17 @@ describe('Root', () => {
         });
     });
 
+    it(`Create another categoria`, () => {
+      return request(app.getHttpServer())
+        .post('/categoria')
+        .send(CategoriaAutomotivoStub)
+        .expect(201)
+        .then((res) => {
+          expect(res.body._id).toBeDefined();
+          expect(res.body.nome).toBe(CategoriaAutomotivoStub.nome);
+        });
+    });
+
     it(`Error: no 'nome' for new categoria`, () => {
       return request(app.getHttpServer())
         .post('/categoria')
@@ -81,6 +93,42 @@ describe('Root', () => {
           expect(res.body.message).toBe(
             'CastError: Cast to ObjectId failed for value "foobar" (type string) at path "_id" for model "Categoria"',
           );
+        });
+    });
+
+    it(`Get all categorias`, () => {
+      return request(app.getHttpServer())
+        .get(`/categoria`)
+        .expect(200)
+        .then((res) => {
+          expect(res.body.length).toBe(2);
+          expect(res.body[0]._id).toBe(newCategoria._id);
+          expect(res.body[0].nome).toBe(CategoriaInformaticaStub.nome);
+          expect(res.body[1]._id).toBeDefined();
+          expect(res.body[1].nome).toBe(CategoriaAutomotivoStub.nome);
+        });
+    });
+
+    it(`Get all categorias with pagination`, () => {
+      return request(app.getHttpServer())
+        .get(`/categoria`)
+        .query({ size: 1, page: 1 })
+        .expect(200)
+        .then((res) => {
+          expect(res.body.length).toBe(1);
+          expect(res.body[0]._id).toBeDefined();
+          expect(res.body[0].nome).toBe(CategoriaAutomotivoStub.nome);
+        });
+    });
+    it(`Error: invalid params for get all categorias`, () => {
+      return request(app.getHttpServer())
+        .get(`/categoria`)
+        .query({ size: 'foo', page: 'bar' })
+        .expect(400)
+        .then((res) => {
+          expect(res.body.message.length).toBe(5);
+          expect(res.body.error).toBe('Bad Request');
+          expect(res.body.statusCode).toBe(400);
         });
     });
 
@@ -143,13 +191,22 @@ describe('Root', () => {
           expect(res.body.statusCode).toBe(404);
         });
 
-      return request(app.getHttpServer())
+      await request(app.getHttpServer())
         .delete(`/categoria/${newCategoria._id}`)
         .expect(404)
         .then((res) => {
           expect(res.body.message).toBe('Categoria not found');
           expect(res.body.error).toBe('Not Found');
           expect(res.body.statusCode).toBe(404);
+        });
+
+      return request(app.getHttpServer())
+        .get(`/categoria`)
+        .expect(200)
+        .then((res) => {
+          expect(res.body.length).toBe(1);
+          expect(res.body[0]._id).toBeDefined();
+          expect(res.body[0].nome).toBe(CategoriaAutomotivoStub.nome);
         });
     });
   });
