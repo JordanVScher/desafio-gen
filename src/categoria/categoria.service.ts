@@ -16,8 +16,14 @@ export class CategoriaService {
     return createdCategoria.save();
   }
 
-  findAll() {
-    return `This action returns all categoria`;
+  async findAll(size: number = 20, page: number = 0): Promise<Categoria[]> {
+    const categoriasFound = await this.categoriaModel.find(
+      {},
+      {},
+      { skip: size * page, limit: size },
+    );
+
+    return categoriasFound;
   }
 
   async findOne(id: string): Promise<Categoria> {

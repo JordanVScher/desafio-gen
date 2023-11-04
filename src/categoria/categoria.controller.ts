@@ -6,10 +6,12 @@ import {
   Patch,
   Param,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { CategoriaService } from './categoria.service';
 import { CreateCategoriaDto } from './dto/create-categoria.dto';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
+import { GetCategoriaDTO } from './dto/get-categoria.dto';
 
 @Controller('categoria')
 export class CategoriaController {
@@ -21,8 +23,8 @@ export class CategoriaController {
   }
 
   @Get()
-  findAll() {
-    return this.categoriaService.findAll();
+  findAll(@Query() query: GetCategoriaDTO) {
+    return this.categoriaService.findAll(query.size, query.page);
   }
 
   @Get(':id')
