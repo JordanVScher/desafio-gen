@@ -37,7 +37,12 @@ export class CategoriaService {
     return updatedCategoria;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} categoria`;
+  async remove(_id: string): Promise<Categoria> {
+    const deletedCategoria = await this.categoriaModel.findOneAndDelete({
+      _id,
+    });
+
+    if (!deletedCategoria) throw new NotFoundException('Categoria not found');
+    return deletedCategoria;
   }
 }

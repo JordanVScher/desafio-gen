@@ -40,6 +40,6 @@ export class CategoriaController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.categoriaService.remove(+id);
+    return this.categoriaService.remove(id);
   }
 }
