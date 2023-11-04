@@ -9,7 +9,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Categoria, CategoriaSchema } from './categoria.schema';
 import { CategoriaController } from './categoria.controller';
 import { CategoriaService } from './categoria.service';
-import { CategoriaInformaticaStub } from '../../test/test-utils/stubs/categoriaStub';
+import {
+  CategoriaInformaticaStub,
+  newNomeCategoria,
+} from '../../test/test-utils/stubs/categoriaStub';
 import { MongoExceptionFilter } from '../filters/MongoExceptionFilter';
 
 describe('Root', () => {
@@ -82,7 +85,6 @@ describe('Root', () => {
     });
 
     it(`Update categoria`, async () => {
-      const newNomeCategoria = 'Info';
       await request(app.getHttpServer())
         .patch(`/categoria/${newCategoria._id}`)
         .send({ nome: newNomeCategoria })
@@ -108,6 +110,46 @@ describe('Root', () => {
         .expect(400)
         .then((res) => {
           expect(res.body.message[0]).toBe('nome must be a string');
+        });
+    });
+
+    it(`Delete categoria`, async () => {
+      return request(app.getHttpServer())
+        .delete(`/categoria/${newCategoria._id}`)
+        .expect(200)
+        .then((res) => {
+          expect(res.body._id).toBe(newCategoria._id);
+          expect(res.body.nome).toBe(newNomeCategoria);
+        });
+    });
+
+    it(`Deleted categoria can't be found anymore`, async () => {
+      await request(app.getHttpServer())
+        .get(`/categoria/${newCategoria._id}`)
+        .expect(404)
+        .then((res) => {
+          expect(res.body.message).toBe('Categoria not found');
+          expect(res.body.error).toBe('Not Found');
+          expect(res.body.statusCode).toBe(404);
+        });
+
+      await request(app.getHttpServer())
+        .patch(`/categoria/${newCategoria._id}`)
+        .send({ nome: newNomeCategoria })
+        .expect(404)
+        .then((res) => {
+          expect(res.body.message).toBe('Categoria not found');
+          expect(res.body.error).toBe('Not Found');
+          expect(res.body.statusCode).toBe(404);
+        });
+
+      return request(app.getHttpServer())
+        .delete(`/categoria/${newCategoria._id}`)
+        .expect(404)
+        .then((res) => {
+          expect(res.body.message).toBe('Categoria not found');
+          expect(res.body.error).toBe('Not Found');
+          expect(res.body.statusCode).toBe(404);
         });
     });
   });
