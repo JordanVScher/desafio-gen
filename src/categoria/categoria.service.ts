@@ -20,15 +20,21 @@ export class CategoriaService {
     return `This action returns all categoria`;
   }
 
-  async findOne(id: string) {
+  async findOne(id: string): Promise<Categoria> {
     const foundCategoria = await this.categoriaModel.findById(id);
     if (!foundCategoria) throw new NotFoundException('Categoria not found');
     return foundCategoria;
   }
 
-  // eslint-disable-next-line
-  update(id: number, updateCategoriaDto: UpdateCategoriaDto) {
-    return `This action updates a #${id} categoria`;
+  async update(_id: string, updateDto: UpdateCategoriaDto): Promise<Categoria> {
+    const updatedCategoria = await this.categoriaModel.findOneAndUpdate(
+      { _id },
+      updateDto,
+      { new: true },
+    );
+
+    if (!updatedCategoria) throw new NotFoundException('Categoria not found');
+    return updatedCategoria;
   }
 
   remove(id: number) {
