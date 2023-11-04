@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCategoriaDto } from './dto/create-categoria.dto';
 import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 import { Categoria } from './categoria.schema';
@@ -11,18 +11,19 @@ export class CategoriaService {
     @InjectModel(Categoria.name) private categoriaModel: Model<Categoria>,
   ) {}
 
-  // eslint-disable-next-line
   async create(createCategoriaDto: CreateCategoriaDto): Promise<Categoria> {
-    const createdCat = new this.categoriaModel(createCategoriaDto);
-    return createdCat.save();
+    const createdCategoria = new this.categoriaModel(createCategoriaDto);
+    return createdCategoria.save();
   }
 
   findAll() {
     return `This action returns all categoria`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} categoria`;
+  async findOne(id: string) {
+    const foundCategoria = await this.categoriaModel.findById(id);
+    if (!foundCategoria) throw new NotFoundException('Categoria not found');
+    return foundCategoria;
   }
 
   // eslint-disable-next-line
