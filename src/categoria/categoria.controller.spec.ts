@@ -31,6 +31,8 @@ describe('Root', () => {
   });
 
   describe('POST /categoria', () => {
+    let newCategoria;
+
     it(`create new categoria`, () => {
       return request(app.getHttpServer())
         .post('/categoria')
@@ -39,6 +41,17 @@ describe('Root', () => {
         .then((res) => {
           expect(res.body._id).toBeDefined();
           expect(res.body.nome).toBe(CategoriaInformaticaStub.nome);
+          newCategoria = res.body;
+        });
+    });
+
+    it(`get created categoria`, () => {
+      return request(app.getHttpServer())
+        .get(`/categoria/${newCategoria._id}`)
+        .expect(200)
+        .then((res) => {
+          expect(res.body._id).toBeDefined();
+          expect(res.body.nome).toBe(newCategoria.nome);
         });
     });
   });
