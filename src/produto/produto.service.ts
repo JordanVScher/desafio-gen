@@ -26,9 +26,15 @@ export class ProdutoService {
     return foundProduto;
   }
 
-  // eslint-disable-next-line
-  update(id: number, updateProdutoDto: UpdateProdutoDto) {
-    return `This action updates a #${id} produto`;
+  async update(_id: string, updateDto: UpdateProdutoDto): Promise<Produto> {
+    const updatedProduto = await this.produtoModel.findOneAndUpdate(
+      { _id },
+      updateDto,
+      { new: true },
+    );
+
+    if (!updatedProduto) throw new NotFoundException('Produto not found');
+    return updatedProduto;
   }
 
   remove(id: number) {
