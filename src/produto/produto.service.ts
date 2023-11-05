@@ -11,7 +11,7 @@ export class ProdutoService {
     @InjectModel(Produto.name) private produtoModel: Model<Produto>,
   ) {}
 
-  create(createProdutoDto: CreateProdutoDto) {
+  create(createProdutoDto: CreateProdutoDto): Promise<Produto> {
     const createdProduto = new this.produtoModel(createProdutoDto);
     return createdProduto.save();
   }
