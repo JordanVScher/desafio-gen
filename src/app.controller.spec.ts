@@ -3,6 +3,10 @@ import { Test } from '@nestjs/testing';
 import { AppModule } from './app.module';
 import { AppService } from './app.service';
 import { INestApplication } from '@nestjs/common';
+import {
+  closeMongodConnection,
+  rootMongooseTestModule,
+} from '../test/test-utils/mongo/MongooseTestModule';
 
 describe('Root', () => {
   let app: INestApplication;
@@ -12,7 +16,7 @@ describe('Root', () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      imports: [AppModule],
+      imports: [AppModule, rootMongooseTestModule()],
     })
       .overrideProvider(AppService)
       .useValue(appService)
@@ -31,5 +35,6 @@ describe('Root', () => {
 
   afterAll(async () => {
     await app.close();
+    await closeMongodConnection();
   });
 });
