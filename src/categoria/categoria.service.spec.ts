@@ -1,6 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CategoriaService } from './categoria.service';
-import { rootMongooseTestModule } from '../../test/test-utils/mongo/MongooseTestModule';
+import {
+  closeMongodConnection,
+  rootMongooseTestModule,
+} from '../../test/test-utils/mongo/MongooseTestModule';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Categoria, CategoriaSchema } from './categoria.schema';
 
@@ -23,5 +26,9 @@ describe('CategoriaService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  afterAll(async () => {
+    await closeMongodConnection();
   });
 });
