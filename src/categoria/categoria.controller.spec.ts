@@ -15,6 +15,7 @@ import {
   newNomeCategoria,
 } from '../../test/test-utils/stubs/categoriaStub';
 import { MongoExceptionFilter } from '../filters/MongoExceptionFilter';
+import { MongoServerExceptionFilter } from '../filters/MongoServerExceptionFilter';
 
 describe('Root', () => {
   let app: INestApplication;
@@ -33,8 +34,9 @@ describe('Root', () => {
 
     app = module.createNestApplication();
 
-    await app.useGlobalFilters(new MongoExceptionFilter());
     await app.useGlobalPipes(new ValidationPipe());
+    await app.useGlobalFilters(new MongoExceptionFilter());
+    await app.useGlobalFilters(new MongoServerExceptionFilter());
 
     await app.init();
   });
@@ -71,6 +73,18 @@ describe('Root', () => {
       .expect(400)
       .then((res) => {
         expect(res.body.message[0]).toBe('nome must be a string');
+      });
+  });
+
+  it(`Error: duplicate 'nome' for new categoria`, () => {
+    return request(app.getHttpServer())
+      .post('/categoria')
+      .send(CategoriaInformaticaStub)
+      .expect(500)
+      .then((res) => {
+        expect(res.body.message).toBe(
+          'MongoServerError: E11000 duplicate key error collection: test.categorias index: nome_1 dup key: { nome: "Informática" }',
+        );
       });
   });
 
@@ -158,6 +172,18 @@ describe('Root', () => {
       .expect(400)
       .then((res) => {
         expect(res.body.message[0]).toBe('nome must be a string');
+      });
+  });
+
+  it(`Error: duplicate 'nome' for updated categoria`, () => {
+    return request(app.getHttpServer())
+      .patch(`/categoria/${newCategoria._id}`)
+      .send(CategoriaAutomotivoStub)
+      .expect(500)
+      .then((res) => {
+        expect(res.body.message).toBe(
+          'MongoServerError: Plan executor error during findAndModify :: caused by :: E11000 duplicate key error collection: test.categorias index: nome_1 dup key: { nome: "Automotivo" }',
+        );
       });
   });
 
