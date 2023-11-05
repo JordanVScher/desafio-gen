@@ -17,6 +17,7 @@ import {
   newNomeProduto,
 } from '../../test/test-utils/stubs/produtoStub';
 import { monetaryStringErrorMsg } from '../utils/monetary-regex';
+import { MongoServerExceptionFilter } from '../filters/MongoServerExceptionFilter';
 
 describe('ProdutoController', () => {
   let app: INestApplication;
@@ -35,8 +36,9 @@ describe('ProdutoController', () => {
 
     app = module.createNestApplication();
 
-    await app.useGlobalFilters(new MongoExceptionFilter());
     await app.useGlobalPipes(new ValidationPipe());
+    await app.useGlobalFilters(new MongoExceptionFilter());
+    await app.useGlobalFilters(new MongoServerExceptionFilter());
 
     await app.init();
   });
@@ -87,6 +89,18 @@ describe('ProdutoController', () => {
       .expect(400)
       .then((res) => {
         expect(res.body.message.length).toBe(4);
+      });
+  });
+
+  it(`Error: duplicate 'nome' for new produto`, () => {
+    return request(app.getHttpServer())
+      .post('/produto')
+      .send(ProdutoFuscaStub)
+      .expect(500)
+      .then((res) => {
+        expect(res.body.message).toBe(
+          'MongoServerError: E11000 duplicate key error collection: test.produtos index: nome_1 dup key: { nome: "Fusca" }',
+        );
       });
   });
 
@@ -186,6 +200,18 @@ describe('ProdutoController', () => {
         expect(res.body.message.length).toBe(2);
         expect(res.body.message[0]).toBe('nome must be a string');
         expect(res.body.message[1]).toBe(monetaryStringErrorMsg);
+      });
+  });
+
+  it(`Error: duplicate 'nome' for updated categoria`, () => {
+    return request(app.getHttpServer())
+      .patch(`/produto/${newProduto._id}`)
+      .send(ProdutoFuscaStub)
+      .expect(500)
+      .then((res) => {
+        expect(res.body.message).toBe(
+          'MongoServerError: Plan executor error during findAndModify :: caused by :: E11000 duplicate key error collection: test.produtos index: nome_1 dup key: { nome: "Fusca" }',
+        );
       });
   });
 
