@@ -11,10 +11,12 @@ import { Produto, ProdutoSchema } from './produto.schema';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { MongoExceptionFilter } from '../filters/MongoExceptionFilter';
 import {
+  InvalidValorStub,
   ProdutoFuscaStub,
   ProdutoNotebookStub,
   newNomeProduto,
 } from '../../test/test-utils/stubs/produtoStub';
+import { monetaryStringErrorMsg } from '../utils/monetary-regex';
 
 describe('ProdutoController', () => {
   let app: INestApplication;
@@ -68,13 +70,23 @@ describe('ProdutoController', () => {
       });
   });
 
+  it(`Error: Invalid valor on create`, () => {
+    return request(app.getHttpServer())
+      .post('/produto')
+      .send(InvalidValorStub)
+      .expect(400)
+      .then((res) => {
+        expect(res.body.message[0]).toBe(monetaryStringErrorMsg);
+      });
+  });
+
   it(`Error: no data for new produto`, () => {
     return request(app.getHttpServer())
       .post('/produto')
       .send({})
       .expect(400)
       .then((res) => {
-        expect(res.body.message.length).toBe(3);
+        expect(res.body.message.length).toBe(4);
       });
   });
 
@@ -142,7 +154,7 @@ describe('ProdutoController', () => {
       });
   });
 
-  it(`Update categoria`, async () => {
+  it(`Update produto`, async () => {
     await request(app.getHttpServer())
       .patch(`/produto/${newProduto._id}`)
       .send({ nome: newNomeProduto })
@@ -168,10 +180,12 @@ describe('ProdutoController', () => {
   it(`Error: invalid data for updated produto`, () => {
     return request(app.getHttpServer())
       .patch(`/produto/${newProduto._id}`)
-      .send({ nome: 123 })
+      .send({ nome: 123, valor: 'foobar' })
       .expect(400)
       .then((res) => {
+        expect(res.body.message.length).toBe(2);
         expect(res.body.message[0]).toBe('nome must be a string');
+        expect(res.body.message[1]).toBe(monetaryStringErrorMsg);
       });
   });
 
