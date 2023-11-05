@@ -49,6 +49,8 @@ describe('ProdutoController', () => {
       .then((res) => {
         expect(res.body._id).toBeDefined();
         expect(res.body.nome).toBe(ProdutoNotebookStub.nome);
+        expect(res.body.descricao).toBe(ProdutoNotebookStub.descricao);
+        expect(res.body.valor).toBe(ProdutoNotebookStub.valor);
         newProduto = res.body;
       });
   });
@@ -61,6 +63,8 @@ describe('ProdutoController', () => {
       .then((res) => {
         expect(res.body._id).toBeDefined();
         expect(res.body.nome).toBe(ProdutoFuscaStub.nome);
+        expect(res.body.descricao).toBe(ProdutoFuscaStub.descricao);
+        expect(res.body.valor).toBe(ProdutoFuscaStub.valor);
       });
   });
 
@@ -103,6 +107,8 @@ describe('ProdutoController', () => {
       .then((res) => {
         expect(res.body._id).toBe(newProduto._id);
         expect(res.body.nome).toBe(newNomeProduto);
+        expect(res.body.descricao).toBe(ProdutoNotebookStub.descricao);
+        expect(res.body.valor).toBe(ProdutoNotebookStub.valor);
       });
 
     return request(app.getHttpServer())
@@ -111,6 +117,8 @@ describe('ProdutoController', () => {
       .then((res) => {
         expect(res.body._id).toBe(newProduto._id);
         expect(res.body.nome).toBe(newNomeProduto);
+        expect(res.body.descricao).toBe(ProdutoNotebookStub.descricao);
+        expect(res.body.valor).toBe(ProdutoNotebookStub.valor);
       });
   });
 
@@ -131,6 +139,8 @@ describe('ProdutoController', () => {
       .then((res) => {
         expect(res.body._id).toBe(newProduto._id);
         expect(res.body.nome).toBe(newNomeProduto);
+        expect(res.body.descricao).toBe(ProdutoNotebookStub.descricao);
+        expect(res.body.valor).toBe(ProdutoNotebookStub.valor);
       });
   });
 
