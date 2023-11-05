@@ -11,3 +11,5 @@ export const ProdutoFuscaStub: CreateProdutoDto = {
   descricao: '1950',
   valor: '10.000',
 };
+
+export const newNomeProduto = 'PC';

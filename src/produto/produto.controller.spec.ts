@@ -13,6 +13,7 @@ import { MongoExceptionFilter } from '../filters/MongoExceptionFilter';
 import {
   ProdutoFuscaStub,
   ProdutoNotebookStub,
+  newNomeProduto,
 } from '../../test/test-utils/stubs/produtoStub';
 
 describe('ProdutoController', () => {
@@ -91,6 +92,35 @@ describe('ProdutoController', () => {
         expect(res.body.message).toBe(
           'CastError: Cast to ObjectId failed for value "foobar" (type string) at path "_id" for model "Produto"',
         );
+      });
+  });
+
+  it(`Update categoria`, async () => {
+    await request(app.getHttpServer())
+      .patch(`/produto/${newProduto._id}`)
+      .send({ nome: newNomeProduto })
+      .expect(200)
+      .then((res) => {
+        expect(res.body._id).toBe(newProduto._id);
+        expect(res.body.nome).toBe(newNomeProduto);
+      });
+
+    return request(app.getHttpServer())
+      .get(`/produto/${newProduto._id}`)
+      .expect(200)
+      .then((res) => {
+        expect(res.body._id).toBe(newProduto._id);
+        expect(res.body.nome).toBe(newNomeProduto);
+      });
+  });
+
+  it(`Error: invalid data for updated produto`, () => {
+    return request(app.getHttpServer())
+      .patch(`/produto/${newProduto._id}`)
+      .send({ nome: 123 })
+      .expect(400)
+      .then((res) => {
+        expect(res.body.message[0]).toBe('nome must be a string');
       });
   });
 
