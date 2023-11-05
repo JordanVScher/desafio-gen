@@ -1,4 +1,8 @@
-import { IsString } from 'class-validator';
+import { IsString, Matches } from 'class-validator';
+import {
+  monetaryStringErrorMsg,
+  monetaryStringRegex,
+} from '../../utils/monetary-regex';
 
 export class CreateProdutoDto {
   @IsString()
@@ -8,5 +12,6 @@ export class CreateProdutoDto {
   descricao: string;
 
   @IsString()
+  @Matches(monetaryStringRegex, { message: monetaryStringErrorMsg })
   valor: string;
 }

@@ -1,4 +1,8 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, Matches } from 'class-validator';
+import {
+  monetaryStringErrorMsg,
+  monetaryStringRegex,
+} from '../../utils/monetary-regex';
 
 export class UpdateProdutoDto {
   @IsOptional()
@@ -11,5 +15,6 @@ export class UpdateProdutoDto {
 
   @IsOptional()
   @IsString()
+  @Matches(monetaryStringRegex, { message: monetaryStringErrorMsg })
   valor: string;
 }
