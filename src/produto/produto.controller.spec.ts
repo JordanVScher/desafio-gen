@@ -124,6 +124,46 @@ describe('ProdutoController', () => {
       });
   });
 
+  it(`Delete produto`, async () => {
+    return request(app.getHttpServer())
+      .delete(`/produto/${newProduto._id}`)
+      .expect(200)
+      .then((res) => {
+        expect(res.body._id).toBe(newProduto._id);
+        expect(res.body.nome).toBe(newNomeProduto);
+      });
+  });
+
+  it(`Deleted produto can't be found anymore`, async () => {
+    await request(app.getHttpServer())
+      .get(`/produto/${newProduto._id}`)
+      .expect(404)
+      .then((res) => {
+        expect(res.body.message).toBe('Produto not found');
+        expect(res.body.error).toBe('Not Found');
+        expect(res.body.statusCode).toBe(404);
+      });
+
+    await request(app.getHttpServer())
+      .patch(`/produto/${newProduto._id}`)
+      .send({ nome: newNomeProduto })
+      .expect(404)
+      .then((res) => {
+        expect(res.body.message).toBe('Produto not found');
+        expect(res.body.error).toBe('Not Found');
+        expect(res.body.statusCode).toBe(404);
+      });
+
+    return request(app.getHttpServer())
+      .delete(`/produto/${newProduto._id}`)
+      .expect(404)
+      .then((res) => {
+        expect(res.body.message).toBe('Produto not found');
+        expect(res.body.error).toBe('Not Found');
+        expect(res.body.statusCode).toBe(404);
+      });
+  });
+
   afterAll(async () => {
     await closeMongodConnection();
   });
