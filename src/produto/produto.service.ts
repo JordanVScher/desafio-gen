@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProdutoDto } from './dto/create-produto.dto';
 import { UpdateProdutoDto } from './dto/update-produto.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -20,8 +20,10 @@ export class ProdutoService {
     return `This action returns all produto`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} produto`;
+  async findOne(id: string): Promise<Produto> {
+    const foundProduto = await this.produtoModel.findById(id);
+    if (!foundProduto) throw new NotFoundException('Produto not found');
+    return foundProduto;
   }
 
   // eslint-disable-next-line
