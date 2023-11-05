@@ -99,6 +99,49 @@ describe('ProdutoController', () => {
       });
   });
 
+  it(`Get all produtos`, () => {
+    return request(app.getHttpServer())
+      .get(`/produto`)
+      .expect(200)
+      .then((res) => {
+        expect(res.body.length).toBe(2);
+        expect(res.body[0]._id).toBe(newProduto._id);
+        expect(res.body[0].nome).toBe(ProdutoNotebookStub.nome);
+        expect(res.body[0].descricao).toBe(ProdutoNotebookStub.descricao);
+        expect(res.body[0].valor).toBe(ProdutoNotebookStub.valor);
+        expect(res.body[1]._id).toBeDefined();
+        expect(res.body[1].nome).toBe(ProdutoFuscaStub.nome);
+        expect(res.body[1].descricao).toBe(ProdutoFuscaStub.descricao);
+        expect(res.body[1].valor).toBe(ProdutoFuscaStub.valor);
+      });
+  });
+
+  it(`Get all produtos with pagination`, () => {
+    return request(app.getHttpServer())
+      .get(`/produto`)
+      .query({ size: 1, page: 1 })
+      .expect(200)
+      .then((res) => {
+        expect(res.body.length).toBe(1);
+        expect(res.body[0]._id).toBeDefined();
+        expect(res.body[0].nome).toBe(ProdutoFuscaStub.nome);
+        expect(res.body[0].descricao).toBe(ProdutoFuscaStub.descricao);
+        expect(res.body[0].valor).toBe(ProdutoFuscaStub.valor);
+      });
+  });
+
+  it(`Error: invalid params for get all produtos`, () => {
+    return request(app.getHttpServer())
+      .get(`/produto`)
+      .query({ size: 'foo', page: 'bar' })
+      .expect(400)
+      .then((res) => {
+        expect(res.body.message.length).toBe(5);
+        expect(res.body.error).toBe('Bad Request');
+        expect(res.body.statusCode).toBe(400);
+      });
+  });
+
   it(`Update categoria`, async () => {
     await request(app.getHttpServer())
       .patch(`/produto/${newProduto._id}`)
@@ -164,13 +207,24 @@ describe('ProdutoController', () => {
         expect(res.body.statusCode).toBe(404);
       });
 
-    return request(app.getHttpServer())
+    await request(app.getHttpServer())
       .delete(`/produto/${newProduto._id}`)
       .expect(404)
       .then((res) => {
         expect(res.body.message).toBe('Produto not found');
         expect(res.body.error).toBe('Not Found');
         expect(res.body.statusCode).toBe(404);
+      });
+
+    return request(app.getHttpServer())
+      .get(`/produto`)
+      .expect(200)
+      .then((res) => {
+        expect(res.body.length).toBe(1);
+        expect(res.body[0]._id).toBeDefined();
+        expect(res.body[0].nome).toBe(ProdutoFuscaStub.nome);
+        expect(res.body[0].descricao).toBe(ProdutoFuscaStub.descricao);
+        expect(res.body[0].valor).toBe(ProdutoFuscaStub.valor);
       });
   });
 
