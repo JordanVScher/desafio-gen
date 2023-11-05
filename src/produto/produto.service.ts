@@ -16,8 +16,14 @@ export class ProdutoService {
     return createdProduto.save();
   }
 
-  findAll() {
-    return `This action returns all produto`;
+  async findAll(size: number = 20, page: number = 0): Promise<Produto[]> {
+    const produtosFound = await this.produtoModel.find(
+      {},
+      {},
+      { skip: size * page, limit: size },
+    );
+
+    return produtosFound;
   }
 
   async findOne(id: string): Promise<Produto> {
