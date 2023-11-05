@@ -1,12 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { CreateProdutoDto } from './dto/create-produto.dto';
 import { UpdateProdutoDto } from './dto/update-produto.dto';
+import { InjectModel } from '@nestjs/mongoose';
+import { Produto } from './produto.schema';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class ProdutoService {
-  // eslint-disable-next-line
+  constructor(
+    @InjectModel(Produto.name) private produtoModel: Model<Produto>,
+  ) {}
+
   create(createProdutoDto: CreateProdutoDto) {
-    return 'This action adds a new produto';
+    const createdProduto = new this.produtoModel(createProdutoDto);
+    return createdProduto.save();
   }
 
   findAll() {
