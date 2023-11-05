@@ -38,7 +38,7 @@ describe('ProdutoController', () => {
     await app.init();
   });
 
-  // let newProduto;
+  let newProduto;
 
   it(`Create new produto`, () => {
     return request(app.getHttpServer())
@@ -48,7 +48,7 @@ describe('ProdutoController', () => {
       .then((res) => {
         expect(res.body._id).toBeDefined();
         expect(res.body.nome).toBe(ProdutoNotebookStub.nome);
-        // newProduto = res.body;
+        newProduto = res.body;
       });
   });
 
@@ -70,6 +70,27 @@ describe('ProdutoController', () => {
       .expect(400)
       .then((res) => {
         expect(res.body.message.length).toBe(3);
+      });
+  });
+
+  it(`Get created produto`, () => {
+    return request(app.getHttpServer())
+      .get(`/produto/${newProduto._id}`)
+      .expect(200)
+      .then((res) => {
+        expect(res.body._id).toBeDefined();
+        expect(res.body.nome).toBe(newProduto.nome);
+      });
+  });
+
+  it(`Error: invalid id`, () => {
+    return request(app.getHttpServer())
+      .get(`/produto/foobar`)
+      .expect(500)
+      .then((res) => {
+        expect(res.body.message).toBe(
+          'CastError: Cast to ObjectId failed for value "foobar" (type string) at path "_id" for model "Produto"',
+        );
       });
   });
 
