@@ -37,7 +37,12 @@ export class ProdutoService {
     return updatedProduto;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} produto`;
+  async remove(_id: string): Promise<Produto> {
+    const deletedProduto = await this.produtoModel.findOneAndDelete({
+      _id,
+    });
+
+    if (!deletedProduto) throw new NotFoundException('Produto not found');
+    return deletedProduto;
   }
 }
