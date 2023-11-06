@@ -17,10 +17,13 @@ export class ProdutoService {
     @InjectModel(Categoria.name) private categoriaModel: Model<Categoria>,
   ) {}
 
-  create(createProdutoDto: CreateProdutoDto): Promise<Produto> {
-    if (!this.categoriaModel.exists({ _id: createProdutoDto.idCategoria }))
-      throw new BadRequestException('Categoria não existe');
+  private async checkIfCategoryExists({ idCategoria }): Promise<void> {
+    const check = await this.categoriaModel.exists({ _id: idCategoria });
+    if (!check) throw new BadRequestException('Categoria does not exist');
+  }
 
+  async create(createProdutoDto: CreateProdutoDto): Promise<Produto> {
+    await this.checkIfCategoryExists(createProdutoDto);
     const createdProduto = new this.produtoModel(createProdutoDto);
     return createdProduto.save();
   }
@@ -42,11 +45,7 @@ export class ProdutoService {
   }
 
   async update(_id: string, updateDto: UpdateProdutoDto): Promise<Produto> {
-    if (
-      updateDto.idCategoria &&
-      !this.categoriaModel.exists({ _id: updateDto.idCategoria })
-    )
-      throw new BadRequestException('Categoria não existe');
+    if (updateDto.idCategoria) await this.checkIfCategoryExists(updateDto);
 
     const updatedProduto = await this.produtoModel.findOneAndUpdate(
       { _id },
