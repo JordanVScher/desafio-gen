@@ -256,6 +256,33 @@ describe('ProdutoController', () => {
       });
   });
 
+  it(`Get parcelas for product`, async () => {
+    const parcelas = 5;
+
+    return request(app.getHttpServer())
+      .get(`/produto/${pNotebookId}/parcelas`)
+      .query({ parcelas })
+      .expect(200)
+      .then((res) => {
+        expect(res.body.originalPrice).toBe(6000);
+        expect(res.body.installmentsQuantity).toBe(parcelas);
+        expect(res.body.installmentValue).toBe(1385.85);
+        expect(res.body.finalPrice).toBe(1385.85 * parcelas);
+      });
+  });
+
+  it(`Error: Invalid parcelas value`, async () => {
+    return request(app.getHttpServer())
+      .get(`/produto/${pNotebookId}/parcelas`)
+      .query({ parcelas: 'foobar' })
+      .expect(400)
+      .then((res) => {
+        expect(res.body.message.length).toBe(3);
+        expect(res.body.error).toBe('Bad Request');
+        expect(res.body.statusCode).toBe(400);
+      });
+  });
+
   it(`Delete produto`, async () => {
     return request(app.getHttpServer())
       .delete(`/produto/${pNotebookId}`)
@@ -301,17 +328,13 @@ describe('ProdutoController', () => {
       });
 
     return request(app.getHttpServer())
-      .get(`/produto`)
-      .expect(200)
+      .get(`/produto/${pNotebookId}/parcelas`)
+      .query({ parcelas: 5 })
+      .expect(404)
       .then((res) => {
-        expect(res.body.length).toBe(1);
-        expect(res.body[0]._id).toBeDefined();
-        expect(res.body[0].nome).toBe(pFusca.nome);
-        expect(res.body[0].descricao).toBe(pFusca.descricao);
-        expect(res.body[0].valor).toBe(pFusca.valor);
-        expect(res.body[0].idCategoria.toString()).toBe(
-          pFusca.idCategoria.toString(),
-        );
+        expect(res.body.message).toBe('Produto not found');
+        expect(res.body.error).toBe('Not Found');
+        expect(res.body.statusCode).toBe(404);
       });
   });
 
