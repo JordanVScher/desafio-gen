@@ -11,7 +11,8 @@ import {
 import { ProdutoService } from './produto.service';
 import { CreateProdutoDto } from './dto/create-produto.dto';
 import { UpdateProdutoDto } from './dto/update-produto.dto';
-import { GetProdutoDTO } from './dto/get-categoria.dto';
+import { GetProdutoDTO } from './dto/get-produto.dto';
+import { GetParcelasDTO } from './dto/get-parcelas.dto';
 
 @Controller('produto')
 export class ProdutoController {
@@ -40,5 +41,10 @@ export class ProdutoController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.produtoService.remove(id);
+  }
+
+  @Get('/:id/parcelas')
+  getParcelas(@Param('id') id: string, @Query() query: GetParcelasDTO) {
+    return this.produtoService.getParcelas(id, query.parcelas);
   }
 }
