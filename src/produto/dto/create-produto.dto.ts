@@ -14,4 +14,7 @@ export class CreateProdutoDto {
   @IsString()
   @Matches(monetaryStringRegex, { message: monetaryStringErrorMsg })
   valor: string;
+
+  @IsString()
+  idCategoria: string;
 }
