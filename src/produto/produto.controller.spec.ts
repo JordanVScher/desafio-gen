@@ -18,9 +18,23 @@ import {
 } from '../../test/test-utils/stubs/produtoStub';
 import { monetaryStringErrorMsg } from '../utils/monetary-regex';
 import { MongoServerExceptionFilter } from '../filters/MongoServerExceptionFilter';
+import {
+  CategoriaAutomotivoStub,
+  CategoriaInformaticaStub,
+} from '../../test/test-utils/stubs/categoriaStub';
+import { Categoria, CategoriaSchema } from '../categoria/categoria.schema';
+import { CategoriaController } from '../categoria/categoria.controller';
+import { CategoriaService } from '../categoria/categoria.service';
 
 describe('ProdutoController', () => {
   let app: INestApplication;
+  let categoriaService: CategoriaService;
+
+  let pNotebook;
+  let pNotebookId;
+  let pInvalidValor;
+  let pFusca;
+  let pFuscaId;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -29,9 +43,12 @@ describe('ProdutoController', () => {
         MongooseModule.forFeature([
           { name: Produto.name, schema: ProdutoSchema },
         ]),
+        MongooseModule.forFeature([
+          { name: Categoria.name, schema: CategoriaSchema },
+        ]),
       ],
-      controllers: [ProdutoController],
-      providers: [ProdutoService],
+      controllers: [ProdutoController, CategoriaController],
+      providers: [ProdutoService, CategoriaService],
     }).compile();
 
     app = module.createNestApplication();
@@ -41,41 +58,63 @@ describe('ProdutoController', () => {
     await app.useGlobalFilters(new MongoServerExceptionFilter());
 
     await app.init();
+
+    // Create Categorias
+    categoriaService = module.get<CategoriaService>(CategoriaService);
+
+    const informaticaCategoria: any = await categoriaService.create(
+      CategoriaInformaticaStub,
+    );
+
+    const automovelCategoria: any = await categoriaService.create(
+      CategoriaAutomotivoStub,
+    );
+
+    pNotebook = ProdutoNotebookStub(informaticaCategoria._id);
+    pInvalidValor = InvalidValorStub(informaticaCategoria._id);
+    pFusca = ProdutoFuscaStub(automovelCategoria._id);
   });
 
-  let newProduto;
-
-  it(`Create new produto`, () => {
+  it(`Create new produto`, async () => {
     return request(app.getHttpServer())
       .post('/produto')
-      .send(ProdutoNotebookStub)
+      .send(pNotebook)
       .expect(201)
       .then((res) => {
         expect(res.body._id).toBeDefined();
-        expect(res.body.nome).toBe(ProdutoNotebookStub.nome);
-        expect(res.body.descricao).toBe(ProdutoNotebookStub.descricao);
-        expect(res.body.valor).toBe(ProdutoNotebookStub.valor);
-        newProduto = res.body;
+        expect(res.body.nome).toBe(pNotebook.nome);
+        expect(res.body.descricao).toBe(pNotebook.descricao);
+        expect(res.body.valor).toBe(pNotebook.valor);
+        expect(res.body.idCategoria.toString()).toBe(
+          pNotebook.idCategoria.toString(),
+        );
+
+        pNotebookId = res.body._id;
       });
   });
 
   it(`Create another produto`, () => {
     return request(app.getHttpServer())
       .post('/produto')
-      .send(ProdutoFuscaStub)
+      .send(pFusca)
       .expect(201)
       .then((res) => {
         expect(res.body._id).toBeDefined();
-        expect(res.body.nome).toBe(ProdutoFuscaStub.nome);
-        expect(res.body.descricao).toBe(ProdutoFuscaStub.descricao);
-        expect(res.body.valor).toBe(ProdutoFuscaStub.valor);
+        expect(res.body.nome).toBe(pFusca.nome);
+        expect(res.body.descricao).toBe(pFusca.descricao);
+        expect(res.body.valor).toBe(pFusca.valor);
+        expect(res.body.idCategoria.toString()).toBe(
+          pFusca.idCategoria.toString(),
+        );
+
+        pFuscaId = res.body._id;
       });
   });
 
   it(`Error: Invalid valor on create`, () => {
     return request(app.getHttpServer())
       .post('/produto')
-      .send(InvalidValorStub)
+      .send(pInvalidValor)
       .expect(400)
       .then((res) => {
         expect(res.body.message[0]).toBe(monetaryStringErrorMsg);
@@ -88,14 +127,14 @@ describe('ProdutoController', () => {
       .send({})
       .expect(400)
       .then((res) => {
-        expect(res.body.message.length).toBe(4);
+        expect(res.body.message.length).toBe(5);
       });
   });
 
   it(`Error: duplicate 'nome' for new produto`, () => {
     return request(app.getHttpServer())
       .post('/produto')
-      .send(ProdutoFuscaStub)
+      .send(pFusca)
       .expect(500)
       .then((res) => {
         expect(res.body.message).toBe(
@@ -106,11 +145,11 @@ describe('ProdutoController', () => {
 
   it(`Get created produto`, () => {
     return request(app.getHttpServer())
-      .get(`/produto/${newProduto._id}`)
+      .get(`/produto/${pNotebookId}`)
       .expect(200)
       .then((res) => {
         expect(res.body._id).toBeDefined();
-        expect(res.body.nome).toBe(newProduto.nome);
+        expect(res.body.nome).toBe(pNotebook.nome);
       });
   });
 
@@ -131,14 +170,10 @@ describe('ProdutoController', () => {
       .expect(200)
       .then((res) => {
         expect(res.body.length).toBe(2);
-        expect(res.body[0]._id).toBe(newProduto._id);
-        expect(res.body[0].nome).toBe(ProdutoNotebookStub.nome);
-        expect(res.body[0].descricao).toBe(ProdutoNotebookStub.descricao);
-        expect(res.body[0].valor).toBe(ProdutoNotebookStub.valor);
-        expect(res.body[1]._id).toBeDefined();
-        expect(res.body[1].nome).toBe(ProdutoFuscaStub.nome);
-        expect(res.body[1].descricao).toBe(ProdutoFuscaStub.descricao);
-        expect(res.body[1].valor).toBe(ProdutoFuscaStub.valor);
+        expect(res.body[0]._id).toBe(pNotebookId);
+        expect(res.body[0].nome).toBe(pNotebook.nome);
+        expect(res.body[1]._id).toBe(pFuscaId);
+        expect(res.body[1].nome).toBe(pFusca.nome);
       });
   });
 
@@ -150,9 +185,7 @@ describe('ProdutoController', () => {
       .then((res) => {
         expect(res.body.length).toBe(1);
         expect(res.body[0]._id).toBeDefined();
-        expect(res.body[0].nome).toBe(ProdutoFuscaStub.nome);
-        expect(res.body[0].descricao).toBe(ProdutoFuscaStub.descricao);
-        expect(res.body[0].valor).toBe(ProdutoFuscaStub.valor);
+        expect(res.body[0].nome).toBe(pFusca.nome);
       });
   });
 
@@ -170,30 +203,36 @@ describe('ProdutoController', () => {
 
   it(`Update produto`, async () => {
     await request(app.getHttpServer())
-      .patch(`/produto/${newProduto._id}`)
+      .patch(`/produto/${pNotebookId}`)
       .send({ nome: newNomeProduto })
       .expect(200)
       .then((res) => {
-        expect(res.body._id).toBe(newProduto._id);
+        expect(res.body._id).toBe(pNotebookId);
         expect(res.body.nome).toBe(newNomeProduto);
-        expect(res.body.descricao).toBe(ProdutoNotebookStub.descricao);
-        expect(res.body.valor).toBe(ProdutoNotebookStub.valor);
+        expect(res.body.descricao).toBe(pNotebook.descricao);
+        expect(res.body.valor).toBe(pNotebook.valor);
+        expect(res.body.idCategoria.toString()).toBe(
+          pNotebook.idCategoria.toString(),
+        );
       });
 
     return request(app.getHttpServer())
-      .get(`/produto/${newProduto._id}`)
+      .get(`/produto/${pNotebookId}`)
       .expect(200)
       .then((res) => {
-        expect(res.body._id).toBe(newProduto._id);
+        expect(res.body._id).toBe(pNotebookId);
         expect(res.body.nome).toBe(newNomeProduto);
-        expect(res.body.descricao).toBe(ProdutoNotebookStub.descricao);
-        expect(res.body.valor).toBe(ProdutoNotebookStub.valor);
+        expect(res.body.descricao).toBe(pNotebook.descricao);
+        expect(res.body.valor).toBe(pNotebook.valor);
+        expect(res.body.idCategoria.toString()).toBe(
+          pNotebook.idCategoria.toString(),
+        );
       });
   });
 
   it(`Error: invalid data for updated produto`, () => {
     return request(app.getHttpServer())
-      .patch(`/produto/${newProduto._id}`)
+      .patch(`/produto/${pNotebookId}`)
       .send({ nome: 123, valor: 'foobar' })
       .expect(400)
       .then((res) => {
@@ -205,8 +244,8 @@ describe('ProdutoController', () => {
 
   it(`Error: duplicate 'nome' for updated categoria`, () => {
     return request(app.getHttpServer())
-      .patch(`/produto/${newProduto._id}`)
-      .send(ProdutoFuscaStub)
+      .patch(`/produto/${pNotebookId}`)
+      .send({ nome: pFusca.nome })
       .expect(500)
       .then((res) => {
         expect(res.body.message).toBe(
@@ -217,19 +256,22 @@ describe('ProdutoController', () => {
 
   it(`Delete produto`, async () => {
     return request(app.getHttpServer())
-      .delete(`/produto/${newProduto._id}`)
+      .delete(`/produto/${pNotebookId}`)
       .expect(200)
       .then((res) => {
-        expect(res.body._id).toBe(newProduto._id);
+        expect(res.body._id).toBe(pNotebookId);
         expect(res.body.nome).toBe(newNomeProduto);
-        expect(res.body.descricao).toBe(ProdutoNotebookStub.descricao);
-        expect(res.body.valor).toBe(ProdutoNotebookStub.valor);
+        expect(res.body.descricao).toBe(pNotebook.descricao);
+        expect(res.body.valor).toBe(pNotebook.valor);
+        expect(res.body.idCategoria.toString()).toBe(
+          pNotebook.idCategoria.toString(),
+        );
       });
   });
 
   it(`Deleted produto can't be found anymore`, async () => {
     await request(app.getHttpServer())
-      .get(`/produto/${newProduto._id}`)
+      .get(`/produto/${pNotebookId}`)
       .expect(404)
       .then((res) => {
         expect(res.body.message).toBe('Produto not found');
@@ -238,7 +280,7 @@ describe('ProdutoController', () => {
       });
 
     await request(app.getHttpServer())
-      .patch(`/produto/${newProduto._id}`)
+      .patch(`/produto/${pNotebookId}`)
       .send({ nome: newNomeProduto })
       .expect(404)
       .then((res) => {
@@ -248,7 +290,7 @@ describe('ProdutoController', () => {
       });
 
     await request(app.getHttpServer())
-      .delete(`/produto/${newProduto._id}`)
+      .delete(`/produto/${pNotebookId}`)
       .expect(404)
       .then((res) => {
         expect(res.body.message).toBe('Produto not found');
@@ -262,9 +304,12 @@ describe('ProdutoController', () => {
       .then((res) => {
         expect(res.body.length).toBe(1);
         expect(res.body[0]._id).toBeDefined();
-        expect(res.body[0].nome).toBe(ProdutoFuscaStub.nome);
-        expect(res.body[0].descricao).toBe(ProdutoFuscaStub.descricao);
-        expect(res.body[0].valor).toBe(ProdutoFuscaStub.valor);
+        expect(res.body[0].nome).toBe(pFusca.nome);
+        expect(res.body[0].descricao).toBe(pFusca.descricao);
+        expect(res.body[0].valor).toBe(pFusca.valor);
+        expect(res.body[0].idCategoria.toString()).toBe(
+          pFusca.idCategoria.toString(),
+        );
       });
   });
 
