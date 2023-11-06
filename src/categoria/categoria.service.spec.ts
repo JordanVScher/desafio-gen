@@ -6,6 +6,7 @@ import {
 } from '../../test/test-utils/mongo/MongooseTestModule';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Categoria, CategoriaSchema } from './categoria.schema';
+import { Produto, ProdutoSchema } from '../produto/produto.schema';
 
 describe('CategoriaService', () => {
   let service: CategoriaService;
@@ -16,6 +17,9 @@ describe('CategoriaService', () => {
         rootMongooseTestModule(),
         MongooseModule.forFeature([
           { name: Categoria.name, schema: CategoriaSchema },
+        ]),
+        MongooseModule.forFeature([
+          { name: Produto.name, schema: ProdutoSchema },
         ]),
       ],
       providers: [CategoriaService],

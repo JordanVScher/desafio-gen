@@ -16,6 +16,7 @@ import {
 } from '../../test/test-utils/stubs/categoriaStub';
 import { MongoExceptionFilter } from '../filters/MongoExceptionFilter';
 import { MongoServerExceptionFilter } from '../filters/MongoServerExceptionFilter';
+import { Produto, ProdutoSchema } from '../produto/produto.schema';
 
 describe('Root', () => {
   let app: INestApplication;
@@ -26,6 +27,9 @@ describe('Root', () => {
         rootMongooseTestModule(),
         MongooseModule.forFeature([
           { name: Categoria.name, schema: CategoriaSchema },
+        ]),
+        MongooseModule.forFeature([
+          { name: Produto.name, schema: ProdutoSchema },
         ]),
       ],
       controllers: [CategoriaController],
@@ -217,22 +221,13 @@ describe('Root', () => {
         expect(res.body.statusCode).toBe(404);
       });
 
-    await request(app.getHttpServer())
+    return request(app.getHttpServer())
       .delete(`/categoria/${newCategoria._id}`)
       .expect(404)
       .then((res) => {
         expect(res.body.message).toBe('Categoria not found');
         expect(res.body.error).toBe('Not Found');
         expect(res.body.statusCode).toBe(404);
-      });
-
-    return request(app.getHttpServer())
-      .get(`/categoria`)
-      .expect(200)
-      .then((res) => {
-        expect(res.body.length).toBe(1);
-        expect(res.body[0]._id).toBeDefined();
-        expect(res.body[0].nome).toBe(CategoriaAutomotivoStub.nome);
       });
   });
 

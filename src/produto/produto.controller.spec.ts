@@ -35,6 +35,7 @@ describe('ProdutoController', () => {
   let pInvalidValor;
   let pFusca;
   let pFuscaId;
+  let automovelCategoriaId;
 
   beforeAll(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -73,6 +74,7 @@ describe('ProdutoController', () => {
     pNotebook = ProdutoNotebookStub(informaticaCategoria._id);
     pInvalidValor = InvalidValorStub(informaticaCategoria._id);
     pFusca = ProdutoFuscaStub(automovelCategoria._id);
+    automovelCategoriaId = automovelCategoria._id;
   });
 
   it(`Create new produto`, async () => {
@@ -310,6 +312,51 @@ describe('ProdutoController', () => {
         expect(res.body[0].idCategoria.toString()).toBe(
           pFusca.idCategoria.toString(),
         );
+      });
+  });
+
+  it(`Error: Produto gets deleted when categoria gets deleted`, async () => {
+    await categoriaService.remove(automovelCategoriaId);
+
+    await request(app.getHttpServer())
+      .get(`/produto/${pFuscaId}`)
+      .expect(404)
+      .then((res) => {
+        expect(res.body.message).toBe('Produto not found');
+        expect(res.body.error).toBe('Not Found');
+        expect(res.body.statusCode).toBe(404);
+      });
+  });
+
+  it(`Error: Produto can't be created if there's no valid category`, async () => {
+    return request(app.getHttpServer())
+      .post('/produto')
+      .send(pFusca)
+      .expect(400)
+      .then((res) => {
+        expect(res.body.message).toBe('Categoria does not exist');
+        expect(res.body.error).toBe('Bad Request');
+        expect(res.body.statusCode).toBe(400);
+      });
+  });
+
+  it(`Error: Produto can't be updated if there's no valid category`, async () => {
+    await request(app.getHttpServer())
+      .post('/produto')
+      .send(pNotebook)
+      .expect(201)
+      .then((res) => {
+        expect(res.body._id).toBeDefined();
+      });
+
+    return request(app.getHttpServer())
+      .patch(`/produto/${pNotebookId}`)
+      .send({ idCategoria: automovelCategoriaId })
+      .expect(400)
+      .then((res) => {
+        expect(res.body.message).toBe('Categoria does not exist');
+        expect(res.body.error).toBe('Bad Request');
+        expect(res.body.statusCode).toBe(400);
       });
   });
 
