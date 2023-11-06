@@ -4,11 +4,13 @@ import { UpdateCategoriaDto } from './dto/update-categoria.dto';
 import { Categoria } from './categoria.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
+import { Produto } from '../produto/produto.schema';
 
 @Injectable()
 export class CategoriaService {
   constructor(
     @InjectModel(Categoria.name) private categoriaModel: Model<Categoria>,
+    @InjectModel(Produto.name) private produtoModel: Model<Produto>,
   ) {}
 
   async create(createCategoriaDto: CreateCategoriaDto): Promise<Categoria> {
@@ -49,6 +51,8 @@ export class CategoriaService {
     });
 
     if (!deletedCategoria) throw new NotFoundException('Categoria not found');
+
+    await this.produtoModel.deleteMany({ idCategoria: _id });
     return deletedCategoria;
   }
 }
