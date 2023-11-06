@@ -17,6 +17,7 @@ import {
 import { MongoExceptionFilter } from '../filters/MongoExceptionFilter';
 import { MongoServerExceptionFilter } from '../filters/MongoServerExceptionFilter';
 import { Produto, ProdutoSchema } from '../produto/produto.schema';
+import { percentageStringErrorMsg } from '../utils/percentage-regex';
 
 describe('Root', () => {
   let app: INestApplication;
@@ -70,13 +71,26 @@ describe('Root', () => {
       });
   });
 
-  it(`Error: no 'nome' for new categoria`, () => {
+  it(`Error: invalid 'nome' for new categoria`, () => {
     return request(app.getHttpServer())
       .post('/categoria')
-      .send({})
+      .send({ nome: 123, juros: '10' })
       .expect(400)
       .then((res) => {
+        expect(res.body.message.length).toBe(1);
         expect(res.body.message[0]).toBe('nome must be a string');
+      });
+  });
+
+  it(`Error: invalid 'juros' for new categoria`, () => {
+    return request(app.getHttpServer())
+      .post('/categoria')
+      .send({ nome: 'foobar', juros: 123 })
+      .expect(400)
+      .then((res) => {
+        expect(res.body.message.length).toBe(2);
+        expect(res.body.message[0]).toBe(percentageStringErrorMsg);
+        expect(res.body.message[1]).toBe('juros must be a string');
       });
   });
 
@@ -153,7 +167,7 @@ describe('Root', () => {
   it(`Update categoria`, async () => {
     await request(app.getHttpServer())
       .patch(`/categoria/${newCategoria._id}`)
-      .send({ nome: newNomeCategoria })
+      .send({ nome: newNomeCategoria, juros: '45.5' })
       .expect(200)
       .then((res) => {
         expect(res.body._id).toBe(newCategoria._id);
@@ -169,13 +183,26 @@ describe('Root', () => {
       });
   });
 
-  it(`Error: no 'nome' for updated categoria`, () => {
+  it(`Error: invalid 'nome' for updated categoria`, () => {
     return request(app.getHttpServer())
       .patch(`/categoria/${newCategoria._id}`)
-      .send({})
+      .send({ nome: 123, juros: '10' })
       .expect(400)
       .then((res) => {
+        expect(res.body.message.length).toBe(1);
         expect(res.body.message[0]).toBe('nome must be a string');
+      });
+  });
+
+  it(`Error: invalid 'juros' for updated categoria`, () => {
+    return request(app.getHttpServer())
+      .patch(`/categoria/${newCategoria._id}`)
+      .send({ nome: 'foobar', juros: 123 })
+      .expect(400)
+      .then((res) => {
+        expect(res.body.message.length).toBe(2);
+        expect(res.body.message[0]).toBe(percentageStringErrorMsg);
+        expect(res.body.message[1]).toBe('juros must be a string');
       });
   });
 
