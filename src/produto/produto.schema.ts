@@ -6,20 +6,25 @@ import {
 } from '../utils/monetary-regex';
 import { BadRequestException } from '@nestjs/common';
 import { Categoria } from '../categoria/categoria.schema';
+import { ApiProperty } from '@nestjs/swagger';
 
 export type ProdutoDocument = HydratedDocument<Produto>;
 
 @Schema()
 export class Produto {
+  @ApiProperty()
   @Prop({ required: true, unique: true })
   nome: string;
 
+  @ApiProperty()
   @Prop({ required: true })
   descricao: string;
 
+  @ApiProperty()
   @Prop({ required: true })
   valor: string;
 
+  @ApiProperty({ type: 'string' })
   @Prop({
     type: mongoose.Schema.Types.ObjectId,
     ref: Categoria.name,

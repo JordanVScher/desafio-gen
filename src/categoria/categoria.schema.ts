@@ -5,15 +5,18 @@ import {
   percentageStringRegex,
 } from '../utils/percentage-regex';
 import { BadRequestException } from '@nestjs/common';
+import { ApiProperty } from '@nestjs/swagger';
 
 export type CategoriaDocument = HydratedDocument<Categoria>;
 
 @Schema()
 export class Categoria {
+  @ApiProperty()
   @Prop({ required: true, unique: true })
   nome: string;
 
   // since produto's valor is to be saved as a string, so will categoria's juros
+  @ApiProperty()
   @Prop({ required: true, unique: true })
   juros: string;
 }
